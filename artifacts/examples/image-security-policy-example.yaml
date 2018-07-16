@@ -1,11 +1,11 @@
 apiVersion: kritis.grafeas.io/v1beta1
 kind: ImageSecurityPolicy
 metadata:
-  name: my-isp
+  name: example-isp
   namespace: default
 spec:
   imageWhitelist:
-  - gcr.io/my/image
+  - gcr.io/priya-wadhwa/heartbleed
   packageVulnerabilityRequirements:
     maximumSeverity: HIGH # LOW|MEDIUM|HIGH|CRITICAL|BLOCKALL
     onlyFixesNotAvailable: true

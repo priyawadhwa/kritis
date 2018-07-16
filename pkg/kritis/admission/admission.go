@@ -58,6 +58,7 @@ var (
 // If one is not found, it validates against image security policies
 // TODO: Check for attestations
 func AdmissionReviewHandler(w http.ResponseWriter, r *http.Request) {
+	log.Print("Starting admission review...")
 	pod, err := admissionConfig.retrievePod(r)
 	if err != nil {
 		log.Println(err)
@@ -66,10 +67,12 @@ func AdmissionReviewHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	// First, check for a breakglass annotation on the pod
 	if checkBreakglass(pod) {
+		log.Print("Found breakglass, returning success")
 		returnStatus(constants.SuccessStatus, constants.SuccessMessage, w)
 		return
 	}
 	images := pods.Images(*pod)
+	log.Printf("validating images: %s", images)
 	// Next, validate images in the pod against ImageSecurityPolicies in the same namespace
 	isps, err := admissionConfig.fetchImageSecurityPolicies(pod.Namespace)
 	if err != nil {
@@ -77,6 +80,7 @@ func AdmissionReviewHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	log.Printf("got isps: %s", isps)
 	// get the client we will get vulnz from
 	metadataClient, err := admissionConfig.fetchMetadataClient()
 	if err != nil {
@@ -84,16 +88,19 @@ func AdmissionReviewHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	log.Printf("Going through the ISPs now...")
 	for _, isp := range isps {
 		for _, image := range images {
 			violations, err := admissionConfig.validateImageSecurityPolicy(isp, "", image, metadataClient)
 			if err != nil {
+				log.Printf("Err getting violations: %v", err)
 				w.WriteHeader(http.StatusBadRequest)
 				return
 			}
 			// Check if one of the violations is that the image is not fully qualified
 			for _, v := range violations {
 				if v.Violation == securitypolicy.UnqualifiedImageViolation {
+					log.Printf("%s is not a fully qualified image", image)
 					returnStatus(constants.FailureStatus, fmt.Sprintf("%s is not a fully qualified image", image), w)
 					return
 				}

@@ -551,7 +551,9 @@ func BuildConfigFromFlags(masterUrl, kubeconfigPath string) (*restclient.Config,
 	if kubeconfigPath == "" && masterUrl == "" {
 		glog.Warningf("Neither --kubeconfig nor --master was specified.  Using the inClusterConfig.  This might not work.")
 		kubeconfig, err := restclient.InClusterConfig()
+		glog.Warning(err)
 		if err == nil {
+			glog.Warning("got in cluster config")
 			return kubeconfig, nil
 		}
 		glog.Warning("error creating inClusterConfig, falling back to default config: ", err)
