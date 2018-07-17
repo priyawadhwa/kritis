@@ -82,7 +82,6 @@ func (c ContainerAnalysis) GetVulnerabilities(project string, containerImage str
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("Found occs: %s", occs)
 	vulnz := []metadata.Vulnerability{}
 	for _, occ := range occs {
 		vulnz = append(vulnz, getVulnz(occ))

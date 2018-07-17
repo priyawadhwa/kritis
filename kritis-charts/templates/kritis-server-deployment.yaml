@@ -22,7 +22,7 @@ spec:
       # serviceAccountName: kritis-service-account
       containers:
       - name: {{ .Values.image.name }}
-        image: gcr.io/priya-wadhwa/kritis-server:latest
+        image: gcr.io/priya-wadhwa/kritis-server:demo
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         args: ["--tls-cert-file=/var/tls/cert", "--tls-key-file=/var/tls/key"]
         ports:
