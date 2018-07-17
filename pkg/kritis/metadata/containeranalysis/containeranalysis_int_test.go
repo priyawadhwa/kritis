@@ -1,5 +1,3 @@
-// +build integration
-
 /*
 Copyright 2018 Google LLC
 
@@ -22,7 +20,7 @@ import (
 	"testing"
 )
 
-func TestGetVulnerabilities(t *testing.T) {
+func Test_GetVulnerabilities(t *testing.T) {
 	d, err := NewContainerAnalysisClient()
 	if err != nil {
 		t.Fatalf("Could not initialize the client %s", err)

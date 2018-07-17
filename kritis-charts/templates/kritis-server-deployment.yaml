@@ -19,7 +19,7 @@ spec:
         app: {{ .Values.serviceName }}
         release: {{ .Release.Name }}
     spec:
-      serviceAccountName: kritis-service-account
+      # serviceAccountName: kritis-service-account
       containers:
       - name: {{ .Values.image.name }}
         image: gcr.io/priya-wadhwa/kritis-server:latest
@@ -41,3 +41,6 @@ spec:
         - name: tls
           secret:
             secretName: {{ .Values.tlsSecretName }}
+        - name: priyawadhwa-ca-admin
+          secret:
+            secretName: priyawadhwa-ca-admin

@@ -7,7 +7,7 @@ spec:
   imageWhitelist:
   - gcr.io/priya-wadhwa/heartbleed
   packageVulnerabilityRequirements:
-    maximumSeverity: HIGH # LOW|MEDIUM|HIGH|CRITICAL|BLOCKALL
+    maximumSeverity: LOW # LOW|MEDIUM|HIGH|CRITICAL|BLOCKALL
     onlyFixesNotAvailable: true
     whitelistCVEs:
       - providers/goog-vulnz/notes/CVE-2017-1000082
