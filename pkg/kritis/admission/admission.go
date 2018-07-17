@@ -91,7 +91,7 @@ func AdmissionReviewHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Going through the ISPs now...")
 	for _, isp := range isps {
 		for _, image := range images {
-			violations, err := admissionConfig.validateImageSecurityPolicy(isp, "", image, metadataClient)
+			violations, err := admissionConfig.validateImageSecurityPolicy(isp, "priya-wadhwa", image, metadataClient)
 			if err != nil {
 				log.Printf("Err getting violations: %v", err)
 				w.WriteHeader(http.StatusBadRequest)

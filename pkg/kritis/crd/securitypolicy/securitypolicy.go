@@ -27,20 +27,24 @@ import (
 	ca "google.golang.org/genproto/googleapis/devtools/containeranalysis/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/clientcmd"
+	"log"
 )
 
 // ImageSecurityPolicies returns all ISP's in the specified namespaces
 // Pass in an empty string to get all ISPs in all namespaces
 func ImageSecurityPolicies(namespace string) ([]v1beta1.ImageSecurityPolicy, error) {
 	cfg, err := clientcmd.BuildConfigFromFlags("", "")
+	log.Print("getting config")
 	if err != nil {
 		return nil, fmt.Errorf("error building config: %v", err)
 	}
 
 	client, err := clientset.NewForConfig(cfg)
+	log.Print("building clientset")
 	if err != nil {
 		return nil, fmt.Errorf("error building clientset: %v", err)
 	}
+	log.Print("Getting isps")
 	list, err := client.KritisV1beta1().ImageSecurityPolicies(namespace).List(metav1.ListOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("error listing all image policy requirements: %v", err)

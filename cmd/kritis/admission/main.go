@@ -35,6 +35,7 @@ const (
 )
 
 func main() {
+	flag.Set("logtostderr", "true")
 	flag.StringVar(&tlsCertFile, "tls-cert-file", "/var/tls/tls.crt", "TLS certificate file.")
 	flag.StringVar(&tlsKeyFile, "tls-key-file", "/var/tls/tls.key", "TLS key file.")
 	flag.Parse()

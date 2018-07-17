@@ -2,11 +2,11 @@ apiVersion: v1
 kind: List
 items:
 
-- apiVersion: v1
-  kind: ServiceAccount
-  metadata:
-    namespace: default
-    name: kritis-service-account
+# - apiVersion: v1
+#   kind: ServiceAccount
+#   metadata:
+#     namespace: default
+#     name: kritis-service-account
 
 # to delegate authentication and authorization
 - apiVersion: rbac.authorization.k8s.io/v1beta1
@@ -20,7 +20,7 @@ items:
   subjects:
   - kind: ServiceAccount
     namespace: default
-    name: kritis-service-account
+    name: default
 
 # to let the admission server read imagewhitelist/imagesecuritypolicies
 - apiVersion: rbac.authorization.k8s.io/v1
@@ -50,3 +50,32 @@ items:
 #   - kind: ServiceAccount
 #     namespace: default
 #     name: kritis-service-account
+
+# # to delegate authentication and authorization
+# - apiVersion: rbac.authorization.k8s.io/v1beta1
+#   kind: ClusterRoleBinding
+#   metadata:
+#     name: auth-delegator-kritis
+#   roleRef:
+#     kind: ClusterRole
+#     apiGroup: rbac.authorization.k8s.io
+#     name: system:auth-delegator
+#   subjects:
+#   - kind: ServiceAccount
+#     namespace: default
+#     name: kritis-service-account
+
+# - apiVersion: rbac.authorization.k8s.io/v1beta1
+#   kind: ClusterRoleBinding
+#   metadata:
+#     name: default-rbac
+#   subjects:
+#     - kind: ServiceAccount
+#       # Reference to upper's `metadata.name`
+#       name: default
+#       # Reference to upper's `metadata.namespace`
+#       namespace: default
+#   roleRef:
+#     kind: ClusterRole
+#     name: cluster-admin
+#     apiGroup: rbac.authorization.k8s.io
