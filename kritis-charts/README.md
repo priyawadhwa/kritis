@@ -200,3 +200,22 @@ level=info msg="deleted csr tls-webhook-secret-cert"
 Kritis will be deleted from your cluster once this pod has reached `Completed` status.
 
 Note: This will not delete the `ServiceAccount` or `ClusterRoleBinding` created during preinstall, or the container analysis secret created above.
+
+# Troubleshooting
+
+## Logs
+If you're unable to install kritis, looking at logs for the following pods could provide more information:
+* kritis-validation-hook-xxx
+* kritis-preinstall
+* kritis-postinstall
+
+```
+$ kubectl get pods
+NAME                                      READY     STATUS             RESTARTS   AGE
+kritis-postinstall                        0/1       Completed          0          2m
+kritis-preinstall                         0/1       Completed          0          2m
+kritis-validation-hook-7c84c48f47-lsjpg   1/1       Running            0          2m
+
+$ kubectl logs kritis-postinstall
+...
+```
