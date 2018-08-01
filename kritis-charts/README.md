@@ -204,10 +204,11 @@ Note: This will not delete the `ServiceAccount` or `ClusterRoleBinding` created 
 # Troubleshooting
 
 ## Logs
-If you're unable to install kritis, looking at logs for the following pods could provide more information:
+If you're unable to install or delete kritis, looking at logs for the following pods could provide more information:
 * kritis-validation-hook-xxx
-* kritis-preinstall
-* kritis-postinstall
+* kritis-preinstall (during installation)
+* kritis-postinstall (during installation)
+* kritis-predelete (during deletion)
 
 ```
 $ kubectl get pods
@@ -217,5 +218,16 @@ kritis-preinstall                         0/1       Completed          0        
 kritis-validation-hook-7c84c48f47-lsjpg   1/1       Running            0          2m
 
 $ kubectl logs kritis-postinstall
-...
+   ...
 ```
+
+## Deleting Kritis
+If you're unable to delete kritis via `helm delete [DEPLOYMENT NAME]`, you can manually delete kritis `validatingwebhookconfiguration` with the following commands:
+
+```shell
+$ kubectl delete validatingwebhookconfiguration kritis-validation-hook --namespace [YOUR NAMESPACE]
+
+$ kubectl delete validatingwebhookconfiguration kritis-validation-hook-deployments --namespace [YOUR NAMESPACE]
+```
+
+`helm delete` should work at this point.
