@@ -45,8 +45,8 @@ const (
 
 var (
 	gkeZone        = flag.String("gke-zone", "us-central1-a", "gke zone")
-	gkeClusterName = flag.String("gke-cluster-name", "cluster-3", "name of the integration test cluster")
-	gcpProject     = flag.String("gcp-project", "kritis-int-test", "the gcp project where the integration test cluster lives")
+	gkeClusterName = flag.String("gke-cluster-name", "kritis", "name of the integration test cluster")
+	gcpProject     = flag.String("gcp-project", "priya-wadhwa", "the gcp project where the integration test cluster lives")
 	remote         = flag.Bool("remote", true, "if true, run tests on a remote GKE cluster")
 	gacCredentials = flag.String("gac-credentials", "/tmp/gac.json", "path to gac.json credentials for kritis-int-test project")
 	client         kubernetes.Interface
@@ -107,7 +107,7 @@ func setupNamespace(t *testing.T) (*v1.Namespace, func()) {
 	}
 
 	return ns, func() {
-		client.CoreV1().Namespaces().Delete(ns.Name, &meta_v1.DeleteOptions{})
+		// client.CoreV1().Namespaces().Delete(ns.Name, &meta_v1.DeleteOptions{})
 	}
 }
 
@@ -146,6 +146,8 @@ func initKritis(t *testing.T, ns *v1.Namespace) func() {
 		"--set", fmt.Sprintf("tlsSecretName=tls-webhook-secret-%s", ns.Name),
 		"--set", fmt.Sprintf("clusterRoleBindingName=kritis-clusterrolebinding-%s", ns.Name),
 		"--set", fmt.Sprintf("clusterRoleName=kritis-clusterrole-%s", ns.Name),
+		"--set", fmt.Sprintf("serviceName=kritis-validation-hook-%s", ns.Name),
+		"--set", fmt.Sprintf("serviceNameDeployments=kritis-validation-hook-deployments-%s", ns.Name),
 	)
 	helmCmd.Dir = "../"
 
@@ -158,6 +160,10 @@ func initKritis(t *testing.T, ns *v1.Namespace) func() {
 	kritisRelease := strings.Split(helmNameString, "   ")[1]
 	deleteFunc := func() {
 		// cleanup
+		deleteObject("validatingwebhookconfiguration",
+			fmt.Sprintf("kritis-validation-hook-%s", ns.Name), nil)
+		deleteObject("validatingwebhookconfiguration",
+			fmt.Sprintf("kritis-validation-hook-deployments-%s", ns.Name), nil)
 		helmCmd = exec.Command("helm", "delete", "--purge", kritisRelease)
 		helmCmd.Dir = "../"
 		_, err = integration_util.RunCmdOut(helmCmd)
@@ -185,7 +191,9 @@ func initKritis(t *testing.T, ns *v1.Namespace) func() {
 	}
 	for _, pod := range podList.Items {
 		if strings.HasPrefix(pod.Name, "kritis-validation-hook") {
-			if err := kubernetesutil.WaitForPodReady(client.CoreV1().Pods(ns.Name), pod.Name); err != nil {
+			err := kubernetesutil.WaitForPodReady(client.CoreV1().Pods(ns.Name), pod.Name)
+			logrus.Infof("got err %v", err)
+			if err != nil {
 				t.Errorf("%s didn't start running: %v", pod.Name, err)
 				return deleteFunc
 			}
@@ -202,6 +210,7 @@ func TestKritisPods(t *testing.T) {
 	type testRunCase struct {
 		description          string
 		dir                  string
+		testFile             string
 		args                 []string
 		deployments          []testObject
 		pods                 []testObject
@@ -215,6 +224,7 @@ func TestKritisPods(t *testing.T) {
 	var testCases = []testRunCase{
 		{
 			description: "nginx-no-digest",
+			testFile:    "integration/testdata/nginx/nginx-no-digest.yaml",
 			args: []string{"kubectl", "create", "-f",
 				"integration/testdata/nginx/nginx-no-digest.yaml"},
 			pods: []testObject{
@@ -233,6 +243,7 @@ func TestKritisPods(t *testing.T) {
 		},
 		{
 			description: "nginx-no-digest-whitelist",
+			testFile:    "integration/testdata/nginx/nginx-no-digest-whitelist.yaml",
 			args: []string{"kubectl", "create", "-f",
 				"integration/testdata/nginx/nginx-no-digest-whitelist.yaml"},
 			pods: []testObject{
@@ -254,6 +265,7 @@ func TestKritisPods(t *testing.T) {
 		},
 		{
 			description: "nginx-digest-whitelist",
+			testFile:    "integration/testdata/nginx/nginx-digest-whitelist.yaml",
 			args: []string{"kubectl", "create", "-f",
 				"integration/testdata/nginx/nginx-digest-whitelist.yaml"},
 			pods: []testObject{
@@ -275,6 +287,7 @@ func TestKritisPods(t *testing.T) {
 		},
 		{
 			description: "java-with-vuln",
+			testFile:    "integration/testdata/java/java-with-vuln.yaml",
 			args: []string{"kubectl", "create", "-f",
 				"integration/testdata/java/java-with-vuln.yaml"},
 			pods: []testObject{
@@ -292,6 +305,7 @@ func TestKritisPods(t *testing.T) {
 		},
 		{
 			description: "java-with-vuln-deployment",
+			testFile:    "integration/testdata/java/java-with-vuln-deployment.yaml",
 			args: []string{"kubectl", "create", "-f",
 				"integration/testdata/java/java-with-vuln-deployment.yaml"},
 			deployments: []testObject{
@@ -309,6 +323,7 @@ func TestKritisPods(t *testing.T) {
 		},
 		{
 			description: "nginx-no-digest-breakglass",
+			testFile:    "integration/testdata/nginx/nginx-no-digest-breakglass.yaml",
 			args: []string{"kubectl", "apply", "-f",
 				"integration/testdata/nginx/nginx-no-digest-breakglass.yaml"},
 			pods: []testObject{
@@ -330,6 +345,7 @@ func TestKritisPods(t *testing.T) {
 		},
 		{
 			description: "kritis-server-global-whitelist",
+			testFile:    "integration/testdata/kritis-server/kritis-server-global-whitelist.yaml",
 			args: []string{"kubectl", "apply", "-f",
 				"integration/testdata/kritis-server/kritis-server-global-whitelist.yaml"},
 			pods: []testObject{
@@ -351,6 +367,7 @@ func TestKritisPods(t *testing.T) {
 		},
 		{
 			description: "kritis-server-global-whitelist-with-vulnz",
+			testFile:    "integration/testdata/kritis-server/kritis-server-global-whitelist-with-vulnz.yaml",
 			args: []string{"kubectl", "apply", "-f",
 				"integration/testdata/kritis-server/kritis-server-global-whitelist-with-vulnz.yaml"},
 			pods: []testObject{
@@ -382,7 +399,9 @@ func TestKritisPods(t *testing.T) {
 	waitForCRDExamples(t, ns)
 	for _, testCase := range testCases {
 		t.Run(testCase.description, func(t *testing.T) {
-			defer testCase.cleanup(t)
+			defer func() {
+				deleteFromFile(t, testCase.testFile, testCase.shouldSucceed)
+			}()
 
 			cmd := exec.Command(testCase.args[0], testCase.args[1:]...)
 			cmd.Dir = testCase.dir

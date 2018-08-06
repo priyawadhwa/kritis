@@ -51,22 +51,29 @@ func deleteExistingObjects() {
 func createCertificates() {
 	cert := `{
 "hosts": [
-    "kritis-validation-hook",
+	"kritis-validation-hook",
     "kritis-validation-hook.kube-system",
     "kritis-validation-hook.%s",
-    "kritis-validation-hook.%s.svc",
-    "kritis-validation-hook-deployments",
+	"kritis-validation-hook.%s.svc",
+	"kritis-validation-hook-%s",
+    "kritis-validation-hook-%s.kube-system",
+    "kritis-validation-hook-%s.%s",
+    "kritis-validation-hook-%s.%s.svc",
+	"kritis-validation-hook-deployments",
     "kritis-validation-hook-deployments.kube-system",
     "kritis-validation-hook-deployments.%s",
-    "kritis-validation-hook-deployments.%s.svc"
-
+    "kritis-validation-hook-deployments-%s.%s.svc",
+	"kritis-validation-hook-deployments-%s",
+    "kritis-validation-hook-deployments-%s.kube-system",
+    "kritis-validation-hook-deployments-%s.%s",
+    "kritis-validation-hook-deployments-%s.%s.svc"
 ],
 "key": {
 	"algo": "ecdsa",
 	"size": 256
 }
 }`
-	cert = fmt.Sprintf(cert, namespace, namespace, namespace, namespace)
+	cert = strings.Replace(cert, "%s", namespace, -1)
 	certCmd := exec.Command("cfssl", "genkey", "-")
 	certCmd.Stdin = bytes.NewReader([]byte(cert))
 	output := install.RunCommand(certCmd)
