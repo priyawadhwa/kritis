@@ -147,7 +147,7 @@ func initKritis(t *testing.T, ns *v1.Namespace) func() {
 		"--set", fmt.Sprintf("clusterRoleBindingName=kritis-clusterrolebinding-%s", ns.Name),
 		"--set", fmt.Sprintf("clusterRoleName=kritis-clusterrole-%s", ns.Name),
 		"--set", fmt.Sprintf("serviceName=kritis-validation-hook-%s", ns.Name),
-		"--set", fmt.Sprintf("serviceNameDeployments=kritis-validation-hook-deployments%s", ns.Name),
+		"--set", fmt.Sprintf("serviceNameDeployments=kritis-validation-hook-deployments-%s", ns.Name),
 	)
 	helmCmd.Dir = "../"
 
@@ -377,7 +377,7 @@ func TestKritisPods(t *testing.T) {
 	deleteKritis := initKritis(t, ns)
 	defer deleteKritis()
 	if err := kubernetesutil.WaitForDeploymentToStabilize(client, ns.Name,
-		"kritis-validation-hook", 2*time.Minute); err != nil {
+		fmt.Sprintf("kritis-validation-hook-%s", ns.Name), 2*time.Minute); err != nil {
 		t.Fatalf("Timed out waiting for deployment to stabilize")
 	}
 	createCRDExamples(t, ns)
