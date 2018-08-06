@@ -45,8 +45,8 @@ const (
 
 var (
 	gkeZone        = flag.String("gke-zone", "us-central1-a", "gke zone")
-	gkeClusterName = flag.String("gke-cluster-name", "cluster-3", "name of the integration test cluster")
-	gcpProject     = flag.String("gcp-project", "kritis-int-test", "the gcp project where the integration test cluster lives")
+	gkeClusterName = flag.String("gke-cluster-name", "kritis", "name of the integration test cluster")
+	gcpProject     = flag.String("gcp-project", "priya-wadhwa", "the gcp project where the integration test cluster lives")
 	remote         = flag.Bool("remote", true, "if true, run tests on a remote GKE cluster")
 	gacCredentials = flag.String("gac-credentials", "/tmp/gac.json", "path to gac.json credentials for kritis-int-test project")
 	client         kubernetes.Interface
