@@ -25,6 +25,12 @@ curl -LO https://storage.googleapis.com/resolve-tags/latest/resolve-tags-linux-a
   sudo cp $RESOLVE_TAGS_DIR/resolve-tags /usr/local/bin/
 ```
 
+## Windows
+
+Download the [resolve-tags-windows-amd64.exe](https://storage.googleapis.com/resolve-tags/latest/resolve-tags-windows-amd64.exe) file, rename to `resolve-tags.exe`, and add it to your path.
+
+To run as a plugin, also download [plugin.yaml](https://storage.googleapis.com/resolve-tags/latest/plugin.yaml) and store at `~/.kube/plugins/resolve`.
+
 ## Quickstart
 
 ### Running the resolve-tags kubectl plugin
