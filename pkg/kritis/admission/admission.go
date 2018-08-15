@@ -298,8 +298,8 @@ func checkOwners(meta *metav1.ObjectMeta) bool {
 		return false
 	}
 	for _, o := range owners {
-		for h := range handlers {
-			if o.Kind == h {
+		for _, s := range constants.SupportedTypes {
+			if o.Kind == s {
 				glog.Infof("found owner %s %s for %s which was already validated", o.Kind, o.Name, meta.Name)
 				return true
 			}
