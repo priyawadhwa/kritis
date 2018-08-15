@@ -183,6 +183,9 @@ func reviewDeployment(deployment *appsv1.Deployment, ar *v1beta1.AdmissionReview
 		glog.Infof("found breakglass annotation for %s, returning successful status", deployment.Name)
 		return
 	}
+	if checkOwners(&deployment.ObjectMeta) {
+		return
+	}
 	for _, c := range deployment.Spec.Template.Spec.Containers {
 		reviewImages([]string{c.Image}, deployment.Namespace, nil, ar)
 	}
@@ -233,6 +236,9 @@ func reviewPod(pod *v1.Pod, ar *v1beta1.AdmissionReview) {
 		glog.Infof("found breakglass annotation for %s, returning successful status", pod.Name)
 		return
 	}
+	if checkOwners(&pod.ObjectMeta) {
+		return
+	}
 	reviewImages(pods.Images(*pod), pod.Namespace, pod, ar)
 }
 
@@ -240,6 +246,9 @@ func reviewReplicaSet(replicaSet *appsv1.ReplicaSet, ar *v1beta1.AdmissionReview
 	// First, check for a breakglass annotation on the replica set
 	if checkBreakglass(&replicaSet.ObjectMeta) {
 		glog.Infof("found breakglass annotation for %s, returning successful status", replicaSet.Name)
+		return
+	}
+	if checkOwners(&replicaSet.ObjectMeta) {
 		return
 	}
 	for _, c := range replicaSet.Spec.Template.Spec.InitContainers {
@@ -281,6 +290,22 @@ func unmarshalDeployment(r *http.Request) (*appsv1.Deployment, v1beta1.Admission
 		return nil, ar, err
 	}
 	return &deployment, ar, nil
+}
+
+func checkOwners(meta *metav1.ObjectMeta) bool {
+	owners := meta.GetOwnerReferences()
+	if owners == nil {
+		return false
+	}
+	for _, o := range owners {
+		for h := range handlers {
+			if o.Kind == h {
+				glog.Infof("found owner %s %s for %s which was already validated", o.Kind, o.Name, meta.Name)
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func checkBreakglass(meta *metav1.ObjectMeta) bool {
